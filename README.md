@@ -125,3 +125,7 @@ src/
 ## 9. 유의사항
 - Mongo가 안 켜져 있으면 서버가 시작되지 않습니다. `.env`의 `MONGODB_URI`가 올바른지 확인하세요.
 - 동일 통화 업데이트 시 rate 값은 무조건 1로 저장됩니다.
+
+## 10. 테스트 자동화 (Jest)
+- 선행조건: Docker로 MongoDB가 실행 중 (`docker-compose up -d`).
+- 실행: `npm test` (Jest + supertest로 GraphQL 엔드포인트 통합 테스트)
