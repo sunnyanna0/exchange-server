@@ -2,6 +2,16 @@
 
 원/달러 환율정보를 GraphQL API로 CRUD 할 수 있는 Node.js 서버입니다. `http://localhost:5110/graphql` 엔드포인트에 구동됩니다.
 
+## 0. 프로젝트 클론
+```bash
+https://github.com/sunnyanna0/exchange-server.git
+```
+클론받은 디렉터리로 이동
+예)
+```bash
+cd exchange-server
+```
+
 ## 1. 사전 준비
 - Node.js 18+
 - MongoDB 인스턴스 (또는 Docker)
