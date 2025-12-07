@@ -13,9 +13,15 @@ cd exchange-server
 ```
 
 ## 1. 사전 준비
-- Node.js 18+
-- MongoDB 인스턴스 (또는 Docker)
-- `cp .env.example .env` 후 필요한 값 수정
+- Node.js 18+ 설치
+- MongoDB 인스턴스 준비 (로컬 또는 Docker)
+- 환경파일 복사 및 수정:
+  - mac/Linux: cp .env.example .env
+  - Windows: copy .env.example .env
+  - 주요 항목
+    - MONGODB_URI=mongodb://localhost:27017  # Mongo 주소
+    - DB_NAME=exchange                      # 사용할 DB 이름
+    - PORT=5110                             # 서버 포트
 
 ## 2. 의존성 설치
 ```bash
