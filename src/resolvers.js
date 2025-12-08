@@ -1,3 +1,4 @@
+import { getCached, invalidateCache, setCached } from './cache.js';
 import { formatDate, getCollection, toCurrencyCode } from './db.js';
 
 const findLatestRate = async (src, tgt) => {
@@ -16,18 +17,24 @@ export const resolvers = {
         throw new Error('src and tgt are required');
       }
 
+      const cached = getCached(normalizedSrc, normalizedTgt);
+      if (cached) return cached;
+
       const existing = await findLatestRate(normalizedSrc, normalizedTgt);
       if (existing) {
+        setCached(normalizedSrc, normalizedTgt, existing);
         return existing;
       }
 
       if (normalizedSrc === normalizedTgt) {
-        return {
+        const sameCurrency = {
           src: normalizedSrc,
           tgt: normalizedTgt,
           rate: 1,
           date: formatDate()
         };
+        setCached(normalizedSrc, normalizedTgt, sameCurrency);
+        return sameCurrency;
       }
 
       return null;
@@ -51,6 +58,7 @@ export const resolvers = {
         { upsert: true }
       );
 
+      invalidateCache(src, tgt);
       return { src, tgt, rate, date };
     },
     deleteExchangeRate: async (_, { info }) => {
@@ -61,6 +69,7 @@ export const resolvers = {
 
       const collection = getCollection();
       const deleted = await collection.findOneAndDelete({ src, tgt, date });
+      invalidateCache(src, tgt);
       if (!deleted) return null;
       // driver may return the doc directly or under `value`
       return deleted.value ?? deleted;
