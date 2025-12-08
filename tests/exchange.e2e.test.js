@@ -1,6 +1,7 @@
 import request from 'supertest';
 
 import { closeDB } from '../src/db.js';
+import { clearCache } from '../src/cache.js';
 import createApp from '../src/server.js';
 
 let apolloServer;
@@ -37,6 +38,10 @@ describe('Exchange rate GraphQL API', () => {
     );
   });
 
+  beforeEach(() => {
+    clearCache();
+  });
+
   afterAll(async () => {
     if (apolloServer) {
       await apolloServer.stop();
@@ -45,6 +50,7 @@ describe('Exchange rate GraphQL API', () => {
       await new Promise((resolve) => server.close(resolve));
     }
     await closeDB();
+    clearCache();
   });
 
   test('gets krw -> usd latest rate', async () => {
@@ -88,6 +94,36 @@ describe('Exchange rate GraphQL API', () => {
     // 3) 이후 테스트 영향 없도록 시드 복구
     await graphql(
       'mutation { postExchangeRate (info: { src: "usd", tgt: "krw", rate: 1342.11, date:"2022-11-28" }) { src tgt rate date } }'
+    );
+  });
+
+  test('invalidates cache after upsert so latest rate is returned', async () => {
+    // 1) 기존 값(2022-11-28)으로 캐시를 채운다
+    await graphql('query { getExchangeRate (src: "usd", tgt: "krw") { src tgt rate date } }');
+
+    // 2) 더 최신 날짜로 upsert
+    const updated = await graphql(
+      'mutation { postExchangeRate (info: { src: "usd", tgt: "krw", rate: 1200.5, date:"2024-01-01" }) { src tgt rate date } }'
+    );
+    expect(updated.data.postExchangeRate).toEqual({
+      src: 'usd',
+      tgt: 'krw',
+      rate: 1200.5,
+      date: '2024-01-01'
+    });
+
+    // 3) 재조회 시 캐시가 아닌 최신 데이터가 반환되어야 함
+    const afterUpdate = await graphql('query { getExchangeRate (src: "usd", tgt: "krw") { src tgt rate date } }');
+    expect(afterUpdate.data.getExchangeRate).toEqual({
+      src: 'usd',
+      tgt: 'krw',
+      rate: 1200.5,
+      date: '2024-01-01'
+    });
+
+    // 4) 추가한 데이터 정리 (다음 테스트 영향 방지)
+    await graphql(
+      'mutation { deleteExchangeRate (info: { src: "usd", tgt: "krw", date:"2024-01-01" }) { src tgt rate date } }'
     );
   });
 });
