@@ -22,6 +22,7 @@ cd exchange-server
     - MONGODB_URI=mongodb://localhost:27017  # Mongo 주소
     - DB_NAME=exchange                      # 사용할 DB 이름
     - PORT=5110                             # 서버 포트
+    - CACHE_TTL_MS=30000                   # 옵션: 인메모리 캐시 TTL(ms), 0이면 캐시 비활성화
 
 ## 2. 의존성 설치
 ```bash
